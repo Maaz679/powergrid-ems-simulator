@@ -20,7 +20,7 @@
 <!-- Step 3 -->
 <rect x="170" y="206" width="340" height="52" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
 <text x="340" y="226" text-anchor="middle" font-size="14" font-weight="500" fill="#3C3489">3. EMS dispatch decision</text>
-<text x="340" y="244" text-anchor="middle" font-size="12" fill="#534AB7">Allocate: solar → load → battery → grid</text>
+<text x="340" y="244" text-anchor="middle" font-size="12" fill="#534AB7">Allocate: generation → load → storage → grid</text>
 <line x1="340" y1="258" x2="340" y2="282" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
 
 <!-- Step 4 -->
