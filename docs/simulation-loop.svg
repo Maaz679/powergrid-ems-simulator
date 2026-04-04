@@ -1,0 +1,52 @@
+<svg width="100%" viewBox="0 0 680 500" xmlns="http://www.w3.org/2000/svg" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #ffffff;">
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+
+<text x="340" y="28" text-anchor="middle" font-size="16" font-weight="600" fill="#1a1a1a">Simulation loop (per timestep)</text>
+
+<!-- Step 1 -->
+<rect x="220" y="46" width="240" height="52" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="340" y="66" text-anchor="middle" font-size="14" font-weight="500" fill="#085041">1. Read inputs</text>
+<text x="340" y="84" text-anchor="middle" font-size="12" fill="#0F6E56">Irradiance, load demand, SoC</text>
+<line x1="340" y1="98" x2="340" y2="122" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<!-- Step 2 -->
+<rect x="200" y="126" width="280" height="52" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="340" y="146" text-anchor="middle" font-size="14" font-weight="500" fill="#085041">2. Compute generation</text>
+<text x="340" y="164" text-anchor="middle" font-size="12" fill="#0F6E56">P_solar = f(irradiance, temp, area)</text>
+<line x1="340" y1="178" x2="340" y2="202" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<!-- Step 3 -->
+<rect x="170" y="206" width="340" height="52" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+<text x="340" y="226" text-anchor="middle" font-size="14" font-weight="500" fill="#3C3489">3. EMS dispatch decision</text>
+<text x="340" y="244" text-anchor="middle" font-size="12" fill="#534AB7">Allocate: solar → load → battery → grid</text>
+<line x1="340" y1="258" x2="340" y2="282" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<!-- Step 4 -->
+<rect x="200" y="286" width="280" height="52" rx="8" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
+<text x="340" y="306" text-anchor="middle" font-size="14" font-weight="500" fill="#633806">4. Update battery state</text>
+<text x="340" y="324" text-anchor="middle" font-size="12" fill="#854F0B">SoC(t+1) = SoC(t) ± P_bat × η × Δt</text>
+<line x1="340" y1="338" x2="340" y2="362" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<!-- Step 5 -->
+<rect x="200" y="366" width="280" height="52" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+<text x="340" y="386" text-anchor="middle" font-size="14" font-weight="500" fill="#2C2C2A">5. Log metrics</text>
+<text x="340" y="404" text-anchor="middle" font-size="12" fill="#5F5E5A">Cost, curtailment, grid import</text>
+
+<!-- Return arrow -->
+<line x1="340" y1="418" x2="340" y2="440" stroke="#888780" stroke-width="0.5"/>
+<line x1="340" y1="440" x2="120" y2="440" stroke="#888780" stroke-width="0.5"/>
+<line x1="120" y1="440" x2="120" y2="72" stroke="#888780" stroke-width="0.5"/>
+<line x1="120" y1="72" x2="216" y2="72" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="108" y="260" text-anchor="middle" font-size="12" fill="#888780" transform="rotate(-90,108,260)">t = t + Δt</text>
+<text x="108" y="460" text-anchor="middle" font-size="11" fill="#888780">↻ repeat for 24h (Δt = 1 min)</text>
+
+<!-- Side annotations -->
+<line x1="510" y1="232" x2="536" y2="232" stroke="#d3d1c7" stroke-width="0.5" stroke-dasharray="3 3"/>
+<text x="542" y="218" font-size="11" fill="#5F5E5A" font-weight="500">Priority order:</text>
+<text x="542" y="234" font-size="11" fill="#888780">1. Serve critical loads</text>
+<text x="542" y="250" font-size="11" fill="#888780">2. Charge battery if SoC low</text>
+<text x="542" y="266" font-size="11" fill="#888780">3. Serve flexible loads</text>
+<text x="542" y="282" font-size="11" fill="#888780">4. Export surplus to grid</text>
+</svg>
