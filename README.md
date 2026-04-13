@@ -4,9 +4,7 @@ A Python simulator for power grid energy management. Models solar generation, ba
 
 ## Why I Built This
 
-Growing up, my family dealt with inconsistent electricity. Power would go out for hours, sometimes days, and you learn fast which things you can live without and which you can't. That experience is what pushed me toward electrical engineering, and specifically toward energy systems.
-
-I wanted to understand how the decisions behind power dispatch actually work. When solar generation drops and demand stays the same, something has to give. What gets priority? When does the battery kick in? How do you decide between burning expensive fuel and cutting someone's power? This simulator is my way of working through those questions with real math instead of just reading about them.
+I wanted to understand how energy management systems make dispatch decisions in real time. When you have intermittent generation like solar, limited storage, and loads that can't be interrupted, something has to decide where every watt goes at every moment. I built this simulator to work through that problem hands-on: model the generation sources, define the constraints, implement the dispatch logic, and see how different strategies perform against each other. The long-term goal is to be able to run scenarios that answer practical sizing and cost questions before any hardware gets deployed.
 
 ## What I Learned
 
