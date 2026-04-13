@@ -1,58 +1,66 @@
 # Power Grid EMS Simulator
 
-A Python-based energy management system (EMS) simulator for modeling power grid operations. Simulates generation dispatch, battery storage, and load balancing across a multi-source grid. Built from scratch with NumPy, SciPy, and matplotlib rather than relying on existing power systems frameworks.
+A Python simulator for power grid energy management. Models solar generation, battery storage, and load dispatch from scratch using NumPy, SciPy, and matplotlib.
 
-## Why This Project
+## Why I Built This
 
-Reliable power delivery depends on constantly balancing generation with demand, and that problem is getting harder as grids integrate more renewables. Solar and wind output fluctuate with weather, battery storage needs to be charged and discharged at the right times, and certain loads can't afford to lose power.
+Growing up, my family dealt with inconsistent electricity. Power would go out for hours, sometimes days, and you learn fast which things you can live without and which you can't. That experience is what pushed me toward electrical engineering, and specifically toward energy systems.
 
-This simulator models those challenges in a simplified but realistic way. Given a set of generation sources, a battery system, and a load profile, it runs a time-step simulation and determines how to dispatch power at each interval. The goal is to be able to answer practical questions: how much storage do we need to avoid blackouts? What's the cost difference between rule-based and optimized dispatch? How much load do we have to curtail on a cloudy day?
+I wanted to understand how the decisions behind power dispatch actually work. When solar generation drops and demand stays the same, something has to give. What gets priority? When does the battery kick in? How do you decide between burning expensive fuel and cutting someone's power? This simulator is my way of working through those questions with real math instead of just reading about them.
 
-This is also a problem I care about personally. My family has experienced what it's like to live without consistent electricity, and improving energy access in underserved regions is something I want to work on long-term.
+## What I Learned
+
+**How simulation architectures work.** The system runs a discrete time-step loop at 1-minute resolution. Each step reads inputs, computes available generation, runs the dispatch algorithm, updates battery state, and logs metrics. Structuring it this way taught me how to separate the physical models (solar, battery, loads) from the control logic (the EMS), which is how real systems are architected.
+
+**How inputs feed into EMS decisions.** Solar irradiance, ambient temperature, load profiles, battery state of charge, grid electricity prices. Each of these is a variable the dispatch algorithm has to weigh at every timestep. I learned that the hard part isn't any one input, it's how they interact. A cloudy afternoon changes the dispatch strategy completely because it cascades through storage, load curtailment, and cost.
+
+**Real-world challenges that make this problem hard.** A simple "supply meets demand" model breaks down fast. Batteries lose 10-15% of energy per cycle to heat. You can't discharge below 20% SoC without degrading the cells. Solar output can swing 50% in minutes when clouds pass. Critical loads like hospital equipment can't be interrupted, ever. Each of these constraints narrows the set of valid dispatch decisions and forces real tradeoffs.
+
+**How to measure tradeoffs in EMS systems.** There's no single "right answer" in dispatch. Minimizing cost might mean more load curtailment. Maximizing reliability might mean burning expensive generator fuel. I built the simulator to track self-consumption ratio, unserved critical load, battery utilization, grid dependency, and total system cost so you can see exactly what each strategy trades off against.
+
+**Cost analysis and infrastructure sizing.** Running different scenarios lets you answer questions like: does doubling battery capacity actually halve grid dependency, or is there diminishing return? Is it cheaper to oversize solar and curtail the excess, or to right-size solar and rely on the grid during peaks? These are the kinds of decisions utilities and developers make when planning real infrastructure.
 
 ## System Architecture
 
-The system is organized around a central power bus. Generation sources feed into the bus, loads draw from it, and the EMS controller determines how power is allocated at each timestep.
+Generation sources feed into a central power bus, loads draw from it, and the EMS controller decides how power is allocated at each timestep.
 
 ![System Architecture](docs/system-architecture.svg)
 
 **Generation:**
-- **Solar PV** - Output is modeled as a function of irradiance, temperature, and panel area. Supports both real-world irradiance data (e.g., NREL NSRDB) and synthetic profiles.
-- **Conventional generator** - Dispatchable backup source with fuel consumption and cost modeling. Activated by the EMS when renewables and storage can't meet demand.
+- **Solar PV** - Output modeled as a function of irradiance, temperature, and panel area. Supports real data from NREL or synthetic profiles.
+- **Conventional generator** - Dispatchable backup with fuel cost modeling. Activated when renewables and storage can't meet demand.
 
 **Storage and grid interconnection:**
-- **Battery storage** - Tracks state of charge (SoC) over time with configurable capacity, charge/discharge rate limits, round-trip efficiency, and depth-of-discharge constraints.
-- **Grid interconnection** - Optional tie to an external grid for importing or exporting power at time-varying rates. Can be disabled to simulate islanded operation.
+- **Battery storage** - Tracks state of charge over time with charge/discharge rate limits, round-trip efficiency, and depth-of-discharge constraints.
+- **Grid interconnection** - Optional tie to an external grid for importing/exporting at time-varying rates. Can be disabled to simulate islanded operation.
 
 **Loads:**
-- **Critical loads** - Demand that must always be served (hospitals, water treatment, emergency systems). Unserved critical load is tracked as a reliability metric.
-- **Flexible loads** - Demand that can be shifted or curtailed when generation is limited (commercial HVAC, EV charging, industrial processes).
+- **Critical loads** - Demand that must always be served (hospitals, water treatment, emergency systems).
+- **Flexible loads** - Demand that can be shifted or curtailed (commercial HVAC, EV charging, industrial processes).
 
 ## Simulation Loop
 
-The simulator runs a discrete time-step loop, defaulting to 1-minute resolution over a 24-hour period. Each timestep executes five stages:
-
 ![Simulation Loop](docs/simulation-loop.svg)
 
-The EMS dispatch algorithm allocates power using a priority-based strategy:
+The dispatch algorithm allocates power using a priority-based strategy:
 
-1. **Serve critical loads.** All available renewable generation goes to critical loads first. If renewables fall short, the battery discharges to cover the gap. If both are insufficient, the conventional generator starts or grid import is used.
-2. **Charge the battery.** Excess generation beyond critical demand is used to charge the battery, subject to rate limits and SoC bounds.
-3. **Serve flexible loads.** Remaining generation after storage charging goes to flexible loads. These are curtailed if supply is tight.
+1. **Serve critical loads.** Renewable generation goes here first. If insufficient, the battery discharges. If both fall short, the conventional generator starts or we import from the grid.
+2. **Charge the battery.** Excess generation beyond critical demand charges the battery, subject to rate limits and SoC bounds.
+3. **Serve flexible loads.** Remaining generation goes to flexible loads. These get curtailed if supply is tight.
 4. **Export surplus.** Any remaining generation is exported to the grid (grid-tied mode only).
 
-Two dispatch modes are planned: the rule-based priority approach described above, and an optimized approach using linear programming (`scipy.optimize.linprog`) to minimize total system cost over a rolling time horizon.
+Two dispatch modes are planned: the rule-based priority approach above, and an optimized approach using linear programming (`scipy.optimize.linprog`) to minimize total system cost over a rolling time horizon.
 
 ## Key Metrics
 
-| Metric | Description |
-|--------|-------------|
-| Self-consumption ratio | Fraction of renewable generation consumed on-site vs. exported |
-| Unserved critical load | Total energy demand that could not be met |
+| Metric | What it measures |
+|--------|-----------------|
+| Self-consumption ratio | How much renewable generation is used on-site vs. exported |
+| Unserved critical load | Energy demand that could not be met (primary reliability indicator) |
 | Battery utilization | Cycles per day, average SoC, time at min/max bounds |
 | Grid dependency | Net energy imported from the external grid |
-| Total system cost | Fuel cost + grid import cost - grid export revenue |
-| Load curtailment | Total flexible load energy deferred or shed |
+| Total system cost | Fuel + grid import cost - grid export revenue |
+| Load curtailment | Flexible load energy deferred or shed |
 
 ## Project Structure
 
@@ -90,7 +98,7 @@ powergrid-ems-simulator/
 - **SciPy** for optimization (LP-based dispatch)
 - **matplotlib** for visualization (power flow plots, SoC curves, load profiles)
 
-No external power systems frameworks (PyPSA, OpenDSS, etc.) are used. All models are implemented from first principles.
+No external power systems frameworks (PyPSA, OpenDSS, etc.). All models implemented from first principles.
 
 ## Roadmap
 
